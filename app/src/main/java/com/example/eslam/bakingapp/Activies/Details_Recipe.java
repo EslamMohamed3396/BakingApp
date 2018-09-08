@@ -1,21 +1,19 @@
 package com.example.eslam.bakingapp.Activies;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
+import android.os.Bundle;
 import android.os.Parcelable;
-import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 
 import com.example.eslam.bakingapp.Fragments.Step_Fragment;
 import com.example.eslam.bakingapp.Fragments.Video_Fragment;
+import com.example.eslam.bakingapp.HelperMethod.SharedPre;
 import com.example.eslam.bakingapp.Model.Ingredients;
 import com.example.eslam.bakingapp.Model.Step;
 import com.example.eslam.bakingapp.R;
-import com.google.gson.Gson;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +28,7 @@ public class Details_Recipe extends AppCompatActivity implements Step_Fragment.O
     private static final String IS_TABLET = "tablet";
     private static final String INTENT_KEY_STEPS_VIDEO = "steps_video";
     private static final String INTENT_KEY_STEPS_DESCRIPTION = "steps_desc";
+
     private Intent intent;
     private List<Ingredients> mIngredientsList;
     private List<Step> mSteps;
@@ -62,18 +61,15 @@ public class Details_Recipe extends AppCompatActivity implements Step_Fragment.O
     }
 
     private void setPref() {
-        saveArrayList(mIngredientsList, "in");
-    }
+        List<Ingredients> list = SharedPre.getList(this);
+        if (list != null) {
+            SharedPre.ClearArrayList(this);
+            SharedPre.saveArrayList(mIngredientsList, this);
+        } else {
+            SharedPre.saveArrayList(mIngredientsList, this);
 
-    public void saveArrayList(List<Ingredients> list, String key) {
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        SharedPreferences.Editor editor = prefs.edit();
-        Gson gson = new Gson();
-        String json = gson.toJson(list);
-        editor.putString(key, json);
-        editor.apply();
+        }
     }
-
 
     private void intentToFragment() {
         if (intent != null && !intent.equals("")) {

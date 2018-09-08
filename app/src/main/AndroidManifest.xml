@@ -26,6 +26,12 @@
         <activity
             android:name=".Activies.Steps_Details"
             android:parentActivityName=".Activies.Details_Recipe" />
+        <activity
+            android:name=".Activies.Favorite"
+            android:parentActivityName=".Activies.MainActivity" />
+        <activity
+            android:name=".Activies.Steps_Details_Fav"
+            android:parentActivityName=".Activies.Favorite" />
 
         <receiver android:name=".Widget.NewAppWidget">
             <intent-filter>
@@ -36,13 +42,6 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/new_app_widget_info" />
         </receiver>
-
-        <activity
-            android:name=".Activies.Favorite"
-            android:parentActivityName=".Activies.MainActivity" />
-        <activity
-            android:name=".Activies.Steps_Details_Fav"
-            android:parentActivityName=".Activies.Favorite" />
     </application>
 
 </manifest>

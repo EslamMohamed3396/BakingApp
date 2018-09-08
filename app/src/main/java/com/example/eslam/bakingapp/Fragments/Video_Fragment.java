@@ -36,7 +36,10 @@ public class Video_Fragment extends Fragment {
 
     private static final String INTENT_KEY_STEPS_VIDEO = "steps_video";
     private static final String INTENT_KEY_STEPS_DESCRIPTION = "steps_desc";
-    private static long pausePosition = -1;
+    private static final String SAVED_PLAYER_POSITION = "player";
+    private static final String SAVED_PLAYER_READY = "ready";
+    private long pausePosition;
+    private boolean mGetWehnReady;
     private final String TAG = getClass().getSimpleName();
     @BindView(R.id.exo_video)
     SimpleExoPlayerView mPlayerView;
@@ -44,6 +47,8 @@ public class Video_Fragment extends Fragment {
     TextView mDescription;
     private Unbinder unbinder;
     private SimpleExoPlayer mExoPlayer;
+    private String mVideoUrl;
+    private String mDesc;
 
     @Nullable
     @Override
@@ -52,21 +57,48 @@ public class Video_Fragment extends Fragment {
         View rootview = inflater.inflate(R.layout.video_fragment, container, false);
 
         unbinder = ButterKnife.bind(this, rootview);
-        if (savedInstanceState == null) {
-            String mVideoUrl = getArguments().getString(INTENT_KEY_STEPS_VIDEO);
-            String mDesc = getArguments().getString(INTENT_KEY_STEPS_DESCRIPTION);
-            mDescription.setText(mDesc);
-            if (mVideoUrl != null && !mVideoUrl.equals("")) {
-                mPlayerView.requestFocus();
-                initializePlayer(Uri.parse(mVideoUrl));
-            } else {
-                mPlayerView.setVisibility(View.GONE);
-                Toast.makeText(getContext(), "No Video", Toast.LENGTH_SHORT).show();
-            }
+        mVideoUrl = getArguments().getString(INTENT_KEY_STEPS_VIDEO);
+        mDesc = getArguments().getString(INTENT_KEY_STEPS_DESCRIPTION);
+        mDescription.setText(mDesc);
+        if (mVideoUrl != null && !mVideoUrl.equals("")) {
+            mPlayerView.requestFocus();
+            initializePlayer(Uri.parse(mVideoUrl));
+        } else {
+            mPlayerView.setVisibility(View.GONE);
+            Toast.makeText(getContext(), "No Video", Toast.LENGTH_SHORT).show();
         }
         return rootview;
     }
 
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        try {
+
+            pausePosition = mExoPlayer.getCurrentPosition();
+            mGetWehnReady = mExoPlayer.getPlayWhenReady();
+            outState.putLong(SAVED_PLAYER_POSITION, mExoPlayer.getCurrentPosition());
+            outState.putBoolean(SAVED_PLAYER_READY, mExoPlayer.getPlayWhenReady());
+        } catch (Exception e) {
+            Log.e(TAG, "exoplayer error" + e.toString());
+        }
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        if (savedInstanceState != null) {
+            pausePosition = savedInstanceState.getLong(SAVED_PLAYER_POSITION);
+            mGetWehnReady = savedInstanceState.getBoolean(SAVED_PLAYER_READY);
+            if (pausePosition != -1)
+                mExoPlayer.seekTo(pausePosition);
+            else
+                mExoPlayer.seekTo(0);
+
+            mExoPlayer.setPlayWhenReady(mGetWehnReady);
+        }
+    }
 
     @Override
     public void onDestroyView() {
@@ -91,7 +123,7 @@ public class Video_Fragment extends Fragment {
                     mExoPlayer.seekTo(0);
 
                 mExoPlayer.prepare(mediaSource);
-                mExoPlayer.setPlayWhenReady(true);
+                mExoPlayer.setPlayWhenReady(mGetWehnReady);
 
             } catch (Exception e) {
                 Log.e(TAG, "exoplayer error" + e.toString());
@@ -107,24 +139,18 @@ public class Video_Fragment extends Fragment {
 
     @Override
     public void onPause() {
+        super.onPause();
         if (mExoPlayer != null)
             pausePosition = mExoPlayer.getCurrentPosition();
-        super.onPause();
-
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        if (mExoPlayer != null) {
-            releasePlayer();
-        }
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        if (mExoPlayer != null)
-            releasePlayer();
+        if (mExoPlayer != null) {
+            if (Util.SDK_INT > 23) {
+                releasePlayer();
+            }
+        }
     }
 }
